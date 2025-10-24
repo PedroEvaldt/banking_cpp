@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <iomanip>
 #include <cstdlib>
 #include <thread>
@@ -11,11 +12,11 @@ typedef struct{
     int amount;
 }Baccount;
 
-void showBalance(int id, Baccount *accounts);
-void withdraw(int id, int amount, Baccount *accounts);
-void deposit(int id, int amount, Baccount *accounts);
-void transfer(int from, int id, int amount, Baccount *accounts);
-void create_account(int amount, Baccount *accounts);
+void showBalance(int id, vector<Baccount> &accounts);
+void withdraw(int id, int amount, vector<Baccount> &accounts);
+void deposit(int id, int amount, vector<Baccount> &accounts);
+void transfer(int from, int id, int amount, vector<Baccount> &accounts);
+void create_account(string owner, int amount, vector<Baccount> &accounts);
 void clearScreen();
 void pauseScreen();
 void loadingAnimation();
@@ -27,7 +28,7 @@ int ID = 1;
 // =========================================
 int main() {
     int escolha;
-    Baccount accounts[100] = {};
+    vector<Baccount> accounts;
 
     while (true) {
         clearScreen();
@@ -49,15 +50,15 @@ int main() {
         clearScreen();
         
         int id, amount, from, to;
-
+        string owner;
         switch (escolha) {
         case 1: {
             cout << "\033[1;34mDigite o valor para criação da conta: \033[0m";
             cin >> amount;
             cout << "\033[1;34mDigite o nome do dono da conta: \033[0m";
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            getline(cin, accounts[ID].owner);
-            create_account( amount, accounts);
+            getline(cin, owner);
+            create_account(owner, amount, accounts);
             ID++;
             pauseScreen();
             break;
@@ -140,43 +141,59 @@ void loadingAnimation() {
 // =========================================
 // FUNÇÕES PRINCIPAIS DO SISTEMA
 // =========================================
-void create_account(int amount, Baccount *accounts) {
-    accounts[ID].ID = ID;
-    accounts[ID].amount = amount;
+void create_account(string owner, int amount, vector<Baccount> &accounts) {
+    Baccount new_acc = {ID, owner, amount};
+    accounts.push_back(new_acc);
     cout << "\033[1;32mConta criada com sucesso!\033[0m\n";
     cout << "ID da conta: \033[1;33m" << ID << "\033[0m\n";
     cout << "Saldo inicial: \033[1;32mR$" << amount << "\033[0m\n";
 }
 
-void deposit(int id, int amount, Baccount *accounts) {
-    accounts[id].amount += amount;
-    cout << "\033[1;32m+" << amount << " adicionados à conta ID " << id << "\033[0m\n";
-}
-
-void withdraw(int id, int amount, Baccount *accounts) {
-    if (accounts[id].amount >= amount) {
-        accounts[id].amount -= amount;
-        cout << "\033[1;32m-" << amount << " retirados com sucesso!\033[0m\n";
-    } else {
-        cout << "\033[1;31mSaldo insuficiente!\033[0m Reveja o valor no balanço.\n";
+void deposit(int id, int amount, vector<Baccount> &accounts) {
+    if(id > 0 && id <= ID){
+    accounts[id - 1].amount += amount;
+    cout << "\033[1;32m+" << amount << " adicionados à conta ID " << id << "\033[0m\n";}
+    else{
+        cout << "  \033[1;31mId inválido, digite um id válido.\033[0m\n";
     }
 }
 
-void transfer(int from, int to, int amount, Baccount *accounts){
-    if (accounts[from].amount >= amount){
-        accounts[from].amount -= amount;
-        accounts[to].amount += amount;
+void withdraw(int id, int amount, vector<Baccount> &accounts) {
+    if (id > 0 && id <= ID){
+        if (accounts[id - 1].amount >= amount) {
+            accounts[id - 1].amount -= amount;
+            cout << "\033[1;32m-" << amount << " retirados com sucesso!\033[0m\n";
+        } else {
+            cout << "\033[1;31mSaldo insuficiente!\033[0m Reveja o valor no balanço.\n";
+        }}
+    else{
+        cout << "  \033[1;31mId inválido, digite um id válido.\033[0m\n";
+    }
+}
+
+void transfer(int from, int to, int amount, vector<Baccount> &accounts){
+    if (from > 0 && from <= ID && to > 0 && to <= ID){
+    if (accounts[from - 1].amount >= amount){
+        accounts[from - 1].amount -= amount;
+        accounts[to - 1].amount += amount;
         cout << "MENSAGEM DE SUCESSO DE TRANSFERENCIA";
     }
     else{
         cout << "MENSAGEM DE FALHA DE TRANSFERENCIA";
+    }}
+    else{
+        cout << "  \033[1;31mId inválido, digite um id válido.\033[0m\n";
     }
 }
 
-void showBalance(int id, Baccount *accounts) {
+void showBalance(int id, vector<Baccount> &accounts) {
+    if (id > 0 && id <= ID){
     cout << "\n\033[1;36m-------------------------------------------\033[0m\n";
     cout << "Conta ID: \033[1;33m" << id << "\033[0m\n";
-    cout << "Dono da conta: \033[1;33m" << accounts[id].owner << "\033[0m\n";
-    cout << "Saldo atual: \033[1;32mR$" << accounts[id].amount << "\033[0m\n";
-    cout << "\033[1;36m-------------------------------------------\033[0m\n";
+    cout << "Dono da conta: \033[1;33m" << accounts[id - 1].owner << "\033[0m\n";
+    cout << "Saldo atual: \033[1;32mR$" << accounts[id - 1].amount << "\033[0m\n";
+    cout << "\033[1;36m-------------------------------------------\033[0m\n";}
+    else{
+        cout << "  \033[1;31mId inválido, digite um id válido.\033[0m\n";
+    }
 }
