@@ -14,7 +14,8 @@ typedef struct{
 void showBalance(int id, Baccount *accounts);
 void withdraw(int id, int amount, Baccount *accounts);
 void deposit(int id, int amount, Baccount *accounts);
-void create_account(string owner, int amount, Baccount *accounts);
+void transfer(int from, int id, int amount, Baccount *accounts);
+void create_account(int amount, Baccount *accounts);
 void clearScreen();
 void pauseScreen();
 void loadingAnimation();
@@ -26,7 +27,7 @@ int ID = 1;
 // =========================================
 int main() {
     int escolha;
-    Baccount accounts[100];
+    Baccount accounts[100] = {};
 
     while (true) {
         clearScreen();
@@ -39,23 +40,24 @@ int main() {
         cout << "  \033[1;32m[1]\033[0m Criar uma conta\n";
         cout << "  \033[1;32m[2]\033[0m Fazer um depósito\n";
         cout << "  \033[1;32m[3]\033[0m Fazer um saque\n";
-        cout << "  \033[1;32m[4]\033[0m Ver o saldo\n";
-        cout << "  \033[1;31m[5]\033[0m Sair\n\n";
+        cout << "  \033[1;32m[4]\033[0m Realizar uma transferencia\n";
+        cout << "  \033[1;32m[5]\033[0m Ver o saldo\n";
+        cout << "  \033[1;31m[6]\033[0m Sair\n\n";
         cout << "→ ";
         cin >> escolha;
 
         clearScreen();
         
-        int id, amount;
-        string owner;
+        int id, amount, from, to;
 
         switch (escolha) {
         case 1: {
             cout << "\033[1;34mDigite o valor para criação da conta: \033[0m";
             cin >> amount;
             cout << "\033[1;34mDigite o nome do dono da conta: \033[0m";
-            getline(cin, owner);
-            create_account(owner, amount, accounts);
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            getline(cin, accounts[ID].owner);
+            create_account( amount, accounts);
             ID++;
             pauseScreen();
             break;
@@ -69,7 +71,6 @@ int main() {
             break;
         }
         case 3: {
-            int id, amount;
             cout << "\033[1;34mDigite o ID da conta: \033[0m";
             cin >> id;
             cout << "\033[1;34mDigite o valor a sacar: \033[0m";
@@ -78,15 +79,25 @@ int main() {
             pauseScreen();
             break;
         }
-        case 4: {
-            int id;
+        case 4:{
+            cout << "\033[1;34mDigite o ID da conta que vai realizar o pagamento: \033[0m";
+            cin >> from;
+            cout << "\033[1;34mDigite o valor da transferencia: \033[0m";
+            cin >> amount;
+            cout << "\033[1;34mDigite o ID da conta que vai receber o pagamento: \033[0m";
+            cin >> to;
+            transfer(from, to, amount, accounts);
+            pauseScreen();
+            break;
+        }
+        case 5: {
             cout << "\033[1;34mDigite o ID da conta: \033[0m";
             cin >> id;
             showBalance(id, accounts);
             pauseScreen();
             break;
         }
-        case 5:
+        case 6:
             cout << "\n\033[1;32mSaindo do sistema...\033[0m\n";
             loadingAnimation();
             cout << "\033[1;36mVolte sempre ao Banco TDAH!\033[0m\n";
@@ -129,9 +140,8 @@ void loadingAnimation() {
 // =========================================
 // FUNÇÕES PRINCIPAIS DO SISTEMA
 // =========================================
-void create_account(string owner, int amount, Baccount *accounts) {
+void create_account(int amount, Baccount *accounts) {
     accounts[ID].ID = ID;
-    accounts[ID].owner = owner;
     accounts[ID].amount = amount;
     cout << "\033[1;32mConta criada com sucesso!\033[0m\n";
     cout << "ID da conta: \033[1;33m" << ID << "\033[0m\n";
@@ -152,9 +162,21 @@ void withdraw(int id, int amount, Baccount *accounts) {
     }
 }
 
+void transfer(int from, int to, int amount, Baccount *accounts){
+    if (accounts[from].amount >= amount){
+        accounts[from].amount -= amount;
+        accounts[to].amount += amount;
+        cout << "MENSAGEM DE SUCESSO DE TRANSFERENCIA";
+    }
+    else{
+        cout << "MENSAGEM DE FALHA DE TRANSFERENCIA";
+    }
+}
+
 void showBalance(int id, Baccount *accounts) {
     cout << "\n\033[1;36m-------------------------------------------\033[0m\n";
     cout << "Conta ID: \033[1;33m" << id << "\033[0m\n";
+    cout << "Dono da conta: \033[1;33m" << accounts[id].owner << "\033[0m\n";
     cout << "Saldo atual: \033[1;32mR$" << accounts[id].amount << "\033[0m\n";
     cout << "\033[1;36m-------------------------------------------\033[0m\n";
 }
