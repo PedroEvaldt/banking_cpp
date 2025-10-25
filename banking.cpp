@@ -1,10 +1,13 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <iomanip>
 #include <cstdlib>
 #include <thread>
 #include <chrono>
 #include <limits>
+#include <ctime>
+
 using namespace std;
 
 typedef struct {
@@ -61,7 +64,6 @@ int main() {
             msg_amnt = "\033[1;34mDigite o valor para criação da conta: \033[0m";
             amount = read_int(msg_amnt);
             cout << "\033[1;34mDigite o nome do dono da conta: \033[0m";
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             getline(cin, owner);
             create_account(owner, amount, accounts);
             historico.push_back("Conta de ID " + to_string(ID) + " criada com sucesso");
@@ -184,10 +186,18 @@ int read_int(string mensagem) {
 void create_account(string owner, int amount, vector<Baccount> &accounts) {
     Baccount new_acc = {ID, owner, amount};
     accounts.push_back(new_acc);
-
-    cout << "\033[1;32mConta criada com sucesso!\033[0m\n";
-    cout << "ID da conta: \033[1;33m" << ID << "\033[0m\n";
-    cout << "Saldo inicial: \033[1;32mR$" << amount << "\033[0m\n";
+    ofstream arquivo("account.txt", ios::app);
+    if(!(arquivo.is_open())){
+        cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
+    }
+    else{
+        time_t now = time(0);
+        arquivo << "Created at: " << ctime(&now) << "ID: " << ID << ", Owner: " << owner << ", amount: " << amount << "\n";
+        cout << "\033[1;32mConta criada com sucesso!\033[0m\n";
+        cout << "ID da conta: \033[1;33m" << ID << "\033[0m\n";
+        cout << "Saldo inicial: \033[1;32mR$" << amount << "\033[0m\n";
+    }
+    
 }
 
 void deposit(int id, int amount, vector<Baccount> &accounts) {
