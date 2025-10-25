@@ -21,6 +21,7 @@ void mostrar_historico(vector<string> &historico);
 void clearScreen();
 void pauseScreen();
 void loadingAnimation();
+void showTitle();
 
 int ID = 1;
 
@@ -34,11 +35,9 @@ int main() {
 
     while (true) {
         clearScreen();
-
-        cout << "\033[1;36m=============================================\033[0m\n";
-        cout << setw(44)<< "\033[1;33mBANCO TDAH CENTRAL\033[0m\n";
-        cout << "\033[1;36m=============================================\033[0m\n\n";
-
+        cout << "\033[1;36m\n=============================================\033[0m" << endl;
+        showTitle();
+        cout << "\033[1;36m\n=============================================\033[0m" << endl;
         cout << "\033[1;37mEscolha uma opção:\033[0m\n";
         cout << "  \033[1;32m[1]\033[0m Criar uma conta\n";
         cout << "  \033[1;32m[2]\033[0m Fazer um depósito\n";
@@ -75,16 +74,6 @@ int main() {
             cin >> amount;
             deposit(id, amount, accounts);
             historico.push_back(to_string(amount) + "R$ depositados na conta " + to_string(id));
-            pauseScreen();
-            break;
-        }
-        case 3: {
-            cout << "\033[1;34mDigite o ID da conta: \033[0m";
-            cin >> id;
-            cout << "\033[1;34mDigite o valor a sacar: \033[0m";
-            cin >> amount;
-            withdraw(id, amount, accounts);
-            historico.push_back(to_string(amount) + "R$ sacados da conta " + to_string(id));
             pauseScreen();
             break;
         }
@@ -150,6 +139,15 @@ void loadingAnimation() {
         this_thread::sleep_for(chrono::milliseconds(400));
     }
     cout << "\033[0m\n";
+}
+
+void showTitle(){
+    string title = "BANCO TDAH CENTRAL";
+    cout << setw(14) << "";
+    for (char c: title){
+        cout << "\033[1;33m" << c << "\033[0m" << flush;
+        this_thread::sleep_for(chrono::milliseconds(80));
+    }
 }
 
 // =========================================
