@@ -28,6 +28,7 @@ void pauseScreen();
 void loadingAnimation();
 void showTitle();
 int read_int(string mensagem);
+void logOperation(string msg);
 
 int ID = 1;
 
@@ -57,7 +58,7 @@ int main() {
 
         clearScreen();
         int id, amount, from, to;
-        string owner, msg_id, msg_amnt, msg_from, msg_to;
+        string owner, msg_id, msg_amnt, msg_from, msg_to, msg;
 
         switch (escolha) {
         case 1: {
@@ -66,7 +67,9 @@ int main() {
             cout << "\033[1;34mDigite o nome do dono da conta: \033[0m";
             getline(cin, owner);
             create_account(owner, amount, accounts);
-            historico.push_back("Conta de ID " + to_string(ID) + " criada com sucesso");
+            msg = "Conta de ID " + to_string(ID) + " criada com sucesso";
+            logOperation(msg);
+            historico.push_back(msg);
             ID++;
             pauseScreen();
             break;
@@ -77,7 +80,9 @@ int main() {
             msg_amnt = "\033[1;34mDigite o valor a depositar: \033[0m";
             amount = read_int(msg_amnt);
             deposit(id, amount, accounts);
-            historico.push_back("Depósito de R$" + to_string(amount) + " na conta " + to_string(id));
+            msg = "Depósito de R$" + to_string(amount) + " na conta " + to_string(id);
+            logOperation(msg);
+            historico.push_back(msg);
             pauseScreen();
             break;
         }
@@ -87,7 +92,9 @@ int main() {
             msg_amnt = "\033[1;34mDigite o valor a sacar: \033[0m";
             amount = read_int(msg_amnt);
             withdraw(id, amount, accounts);
-            historico.push_back("Saque de R$" + to_string(amount) + " da conta " + to_string(id));
+            msg = "Saque de R$" + to_string(amount) + " da conta " + to_string(id);
+            logOperation(msg);
+            historico.push_back(msg);
             pauseScreen();
             break;
         }
@@ -99,7 +106,9 @@ int main() {
             msg_to = "\033[1;34mDigite o ID da conta que vai receber o pagamento: \033[0m";
             to = read_int(msg_to);
             transfer(from, to, amount, accounts);
-            historico.push_back("Transferência de R$" + to_string(amount) + " da conta " + to_string(from) + " para a conta " + to_string(to));
+            msg = "Transferência de R$" + to_string(amount) + " da conta " + to_string(from) + " para a conta " + to_string(to);
+            logOperation(msg);
+            historico.push_back(msg);
             pauseScreen();
             break;
         }
@@ -192,7 +201,9 @@ void create_account(string owner, int amount, vector<Baccount> &accounts) {
     }
     else{
         time_t now = time(0);
-        arquivo << "Created at: " << ctime(&now) << "ID: " << ID << ", Owner: " << owner << ", amount: " << amount << "\n";
+        string time = ctime(&now);
+        time.pop_back();
+        arquivo << "Created at: " << time << "  ID: " << ID << ", Owner: " << owner << ", amount: " << amount << "\n";
         cout << "\033[1;32mConta criada com sucesso!\033[0m\n";
         cout << "ID da conta: \033[1;33m" << ID << "\033[0m\n";
         cout << "Saldo inicial: \033[1;32mR$" << amount << "\033[0m\n";
@@ -258,5 +269,19 @@ void mostrar_historico(vector<string> &historico) {
     cout << "\n\033[1;36m====== HISTÓRICO DE OPERAÇÕES ======\033[0m\n";
     for (size_t i = 0; i < historico.size(); ++i) {
         cout << "\033[1;37m[" << i + 1 << "]\033[0m " << historico[i] << endl;
+    }
+}
+
+void logOperation(string msg){
+    ofstream log("log.txt", ios::app);
+    if(!log.is_open()){
+        cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
+    }
+    else{
+        time_t now(0);
+        string time = ctime(&now);
+        time.pop_back();
+        log << "[" << time << "] " << msg << endl;
+        log.close();
     }
 }
