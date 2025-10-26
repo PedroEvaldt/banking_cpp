@@ -7,6 +7,8 @@
 #include <chrono>
 #include <limits>
 #include <ctime>
+#include <algorithm>
+#include <cctype>
 
 using namespace std;
 
@@ -23,6 +25,7 @@ void deposit(int id, int amount, vector<Baccount> &accounts);
 void transfer(int from, int id, int amount, vector<Baccount> &accounts);
 void create_account(string owner, int amount, vector<Baccount> &accounts);
 void mostrar_historico(vector<string> &historico);
+void load_accounts(vector<Baccount> &accounts);
 void clearScreen();
 void pauseScreen();
 void loadingAnimation();
@@ -39,6 +42,7 @@ int main() {
     int escolha;
     vector<Baccount> accounts;
     vector<string> historico;
+    load_accounts(accounts);
 
     while (true) {
         clearScreen();
@@ -278,10 +282,60 @@ void logOperation(string msg){
         cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
     }
     else{
-        time_t now(0);
+        time_t now = time(0);
         string time = ctime(&now);
         time.pop_back();
         log << "[" << time << "] " << msg << endl;
         log.close();
     }
+}
+
+void load_accounts(vector<Baccount> &accounts) {
+    ifstream arquivo("account.txt"); // mesmo nome usado em create_account()
+    if (!arquivo.is_open()) {
+        cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
+        return;
+    }
+
+    string linha;
+    int maxID = 0; // para atualizar o ID global depois
+
+    while (getline(arquivo, linha)) {
+        if (linha.empty()) continue;
+
+        size_t id_pos = linha.find("ID: ");
+        size_t owner_pos = linha.find("Owner: ");
+        size_t amount_pos = linha.find("amount: "); // minúsculo igual ao create_account()
+
+        if (id_pos == string::npos || owner_pos == string::npos || amount_pos == string::npos)
+            continue;
+
+        // ===== Extrair ID =====
+        string id_str = linha.substr(id_pos + 4, owner_pos - (id_pos + 4));
+        id_str.erase(id_str.find_last_not_of(" ,") + 1);
+        int id = stoi(id_str);
+
+        // ===== Extrair Owner =====
+        string owner_str = linha.substr(owner_pos + 7, amount_pos - (owner_pos + 7));
+        // remove espaços e vírgulas finais 
+        owner_str.erase(owner_str.find_last_not_of(" ,") + 1);
+
+        // ===== Extrair Amount =====
+        string amount_str = linha.substr(amount_pos + 8);
+        amount_str.erase(remove_if(amount_str.begin(), amount_str.end(), ::isspace), amount_str.end());
+        int amount = stoi(amount_str);
+
+        // ===== Criar conta e inserir =====
+        Baccount acc = {id, owner_str, amount};
+        accounts.push_back(acc);
+        if (id > maxID) maxID = id;
+    }
+
+    arquivo.close();
+
+    // Atualiza o ID global para continuar a partir do último
+    ID = maxID + 1;
+
+    cout << "\033[1;32mContas carregadas com sucesso (" 
+         << accounts.size() << " contas). Próximo ID: " << ID << "\033[0m\n";
 }
