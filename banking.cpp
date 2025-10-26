@@ -16,6 +16,7 @@ typedef struct {
     int ID;
     string owner;
     int amount;
+    string time;
 } Baccount;
 
 // Protótipos
@@ -26,6 +27,7 @@ void transfer(int from, int id, int amount, vector<Baccount> &accounts);
 void create_account(string owner, int amount, vector<Baccount> &accounts);
 void mostrar_historico(vector<string> &historico);
 void load_accounts(vector<Baccount> &accounts);
+void reload_accounts(vector<Baccount> &accounts);
 void clearScreen();
 void pauseScreen();
 void loadingAnimation();
@@ -132,6 +134,7 @@ int main() {
             cout << "\n\033[1;32mSaindo do sistema...\033[0m\n";
             loadingAnimation();
             cout << "\033[1;36mVolte sempre ao Banco TDAH!\033[0m\n";
+            reload_accounts(accounts);
             return 0;
         default:
             cout << "\033[1;31mOpção inválida! Tente novamente.\033[0m\n";
@@ -197,20 +200,25 @@ int read_int(string mensagem) {
 // FUNÇÕES PRINCIPAIS DO SISTEMA
 // =========================================
 void create_account(string owner, int amount, vector<Baccount> &accounts) {
-    Baccount new_acc = {ID, owner, amount};
+    time_t now = time(0);
+    string time = ctime(&now);
+    time.pop_back();
+    Baccount new_acc = {ID, owner, amount, time};
     accounts.push_back(new_acc);
     ofstream arquivo("account.txt", ios::app);
     if(!(arquivo.is_open())){
         cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
     }
     else{
-        time_t now = time(0);
-        string time = ctime(&now);
-        time.pop_back();
         arquivo << "Created at: " << time << "  ID: " << ID << ", Owner: " << owner << ", amount: " << amount << "\n";
-        cout << "\033[1;32mConta criada com sucesso!\033[0m\n";
-        cout << "ID da conta: \033[1;33m" << ID << "\033[0m\n";
-        cout << "Saldo inicial: \033[1;32mR$" << amount << "\033[0m\n";
+        if(arquivo.fail()){
+            cerr << "\033[1;31mErro ao criar a conta.\033[0m" << endl;
+        }
+        else{
+            cout << "\033[1;32mConta criada com sucesso!\033[0m\n";
+            cout << "ID da conta: \033[1;33m" << ID << "\033[0m\n";
+            cout << "Saldo inicial: \033[1;32mR$" << amount << "\033[0m\n";
+        }
     }
     
 }
@@ -303,6 +311,7 @@ void load_accounts(vector<Baccount> &accounts) {
     while (getline(arquivo, linha)) {
         if (linha.empty()) continue;
 
+        size_t created_pos = linha.find("Created at: ");
         size_t id_pos = linha.find("ID: ");
         size_t owner_pos = linha.find("Owner: ");
         size_t amount_pos = linha.find("amount: "); // minúsculo igual ao create_account()
@@ -310,6 +319,10 @@ void load_accounts(vector<Baccount> &accounts) {
         if (id_pos == string::npos || owner_pos == string::npos || amount_pos == string::npos)
             continue;
 
+        // ===== Extrair Time =====
+        string time_str = linha.substr(created_pos + 12, id_pos - (created_pos + 12));
+        time_str.erase(time_str.find_last_not_of(" ,") + 1);
+        
         // ===== Extrair ID =====
         string id_str = linha.substr(id_pos + 4, owner_pos - (id_pos + 4));
         id_str.erase(id_str.find_last_not_of(" ,") + 1);
@@ -326,7 +339,7 @@ void load_accounts(vector<Baccount> &accounts) {
         int amount = stoi(amount_str);
 
         // ===== Criar conta e inserir =====
-        Baccount acc = {id, owner_str, amount};
+        Baccount acc = {id, owner_str, amount, time_str};
         accounts.push_back(acc);
         if (id > maxID) maxID = id;
     }
@@ -338,4 +351,21 @@ void load_accounts(vector<Baccount> &accounts) {
 
     cout << "\033[1;32mContas carregadas com sucesso (" 
          << accounts.size() << " contas). Próximo ID: " << ID << "\033[0m\n";
+}
+
+void reload_accounts(vector<Baccount> &accounts){
+    ofstream arquivo("account.txt", ios::trunc);
+    if(!arquivo.is_open()){
+        cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
+    }
+    for (const auto &acc : accounts){
+        arquivo << "Created at: " << acc.time 
+                << "  ID: " << acc.ID 
+                << ", Owner: " << acc.owner 
+                << ", amount: " << acc.amount << "\n";
+        if(arquivo.fail()){
+            cerr << "\033[1;31mErro ao carregar as conta no arquivo.\033[0m" << endl;
+        }
+    }
+    arquivo.close();
 }
