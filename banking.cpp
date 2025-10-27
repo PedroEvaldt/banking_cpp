@@ -9,12 +9,32 @@
 #include <ctime>
 #include <algorithm>
 #include <cctype>
+#include <stdexcept>
+#include <typeinfo>
 
 using namespace std;
+
+#define C_RED   "\033[1;31m"
+#define C_GRN   "\033[1;32m"
+#define C_YEL   "\033[1;33m"
+#define C_CYN   "\033[1;36m"
+#define C_RST   "\033[0m"
+
 
 // =========================================
 // FUNÇÕES AUXILIARES DE INTERFACE
 // =========================================
+
+void logError(const exception &e, const string &where){
+    ofstream f("errors.log", ios::app);
+    if (!f.is_open()) return;
+    time_t now = time(0);
+    string t = ctime(&now);
+    t.pop_back();
+
+    f << "[" << t << "] " << where << " | " << typeid(e).name()
+      << " | " << e.what() << "\n";
+}
 
 void clearScreen() {
 #ifdef _WIN32
@@ -65,6 +85,22 @@ int read_int(string mensagem) {
     }
 }
 
+// Tratamento de erros
+class ContaInexistente : public invalid_argument {
+public:
+    using invalid_argument::invalid_argument;
+};
+
+class SaldoInsuficiente : public runtime_error {
+public:
+    using runtime_error::runtime_error;
+};
+
+class ValorInvalido : public invalid_argument{
+public:
+    using invalid_argument::invalid_argument;
+};
+
 class Account{
 private:
     static int nextID;
@@ -84,10 +120,10 @@ public:
     }
 
 
-    int getId() {return ID;}
-    string getOwner() {return owner;}
-    int getAmount() {return amount;}
-    string getTime() {return createdAt;}
+    int getId() const {return ID;}
+    string getOwner() const {return owner;}
+    int getAmount() const {return amount;}
+    string getTime() const {return createdAt;}
 
     void deposit(int value) {amount += value; }
     bool withdraw (int value) {
@@ -127,6 +163,13 @@ private:
             log << "[" << time << "] " << msg << endl;
             log.close();
         }
+    }
+
+    Account& findAccount(int id){
+        if (id <= 0 || id > static_cast<int>(accounts.size())){
+            throw ContaInexistente("ID " + to_string(id) + " não existe.");
+        }
+        return accounts[id - 1];
     }
 
 public:
@@ -192,12 +235,15 @@ public:
     // FUNÇÕES PRINCIPAIS
     // =========================================
     void createAccount() {
-        cout << "\033[1;34mDigite o nome do dono da conta: \033[0m";
+        cout << C_CYN "Digite o nome do dono da conta: \033[0m";
         string owner;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        if (cin.peek() == '\n') cin.ignore();
         getline(cin, owner);
 
-        int amount = read_int("\033[1;34mDigite o valor para criação da conta: \033[0m");
+        int amount = read_int(C_CYN "Digite o valor para criação da conta: \033[0m");
+
+        if (owner.empty()) throw ValorInvalido("Nome do proprietário está vazio.");
+        if (amount <= 0) throw ValorInvalido("Saldo insuficiente para inicializar a conta.");
 
         accounts.emplace_back(owner, amount);
         
@@ -208,15 +254,13 @@ public:
 
     void deposit() {
 
-        int id = read_int("\033[1;34mDigite o ID da conta: \033[0m");
-        int amount = read_int("\033[1;34mDigite o valor a depositar: \033[0m");
+        int id = read_int(C_CYN "Digite o ID da conta: " C_RST);
+        int amount = read_int(C_CYN "Digite o valor a depositar: \033[0m");
         
-        if (id <= 0 || id > (int)accounts.size()){
-            cout << "\033[1;31mID inválido.\033[0m\n";
-            return;
-        }
+        if (amount <= 0) throw ValorInvalido("Depósito deve ser > 0.");
 
-        accounts[id - 1].deposit(amount);
+        Account &acc = findAccount(id);
+        acc.deposit(amount);
 
         string msg = "Depósito de R$" + to_string(amount) + " na conta " + to_string(id);
         historico.push_back(msg);
@@ -225,50 +269,48 @@ public:
 
     void withdraw() {
 
-        int id = read_int("\033[1;34mDigite o ID da conta: \033[0m");
-        int amount = read_int("\033[1;34mDigite o valor a sacar: \033[0m");
+        int id = read_int(C_CYN "Digite o ID da conta: \033[0m");
+        int amount = read_int(C_CYN "Digite o valor a sacar: \033[0m");
 
-        if (id <= 0 || id > (int)accounts.size()){
-            cout << "\033[1;31mID inválido.\033[0m\n";
-            return;
-        }
-
-        if (accounts[id - 1].withdraw(amount)){
-
+        if (amount <= 0) throw ValorInvalido("Saque deve ser > 0.");
+        
+        Account &acc = findAccount(id);
+        
+        if (acc.withdraw(amount)){
             string msg = "Saque de R$" + to_string(amount) + " da conta " + to_string(id);
             historico.push_back(msg);
             logOperation(msg);
 
             cout << "\033[1;32mSaque realizado!\033[0m\n";
         } else {
-            cout << "\033[1;31mSaldo insuficiente!\033[0m\n";
+            throw SaldoInsuficiente("Saldo insuficiente para sacar R$" + to_string(amount) + ".");
         }
     }
 
         void transfer() {
-        int from = read_int("\033[1;34mConta origem: \033[0m");
-        int to = read_int("\033[1;34mConta destino: \033[0m");
-        int value = read_int("\033[1;34mValor: \033[0m");
+        int from = read_int(C_CYN "Conta origem: \033[0m");
+        int to = read_int(C_CYN "Conta destino: \033[0m");
+        int value = read_int(C_CYN "Valor: \033[0m");
 
-        if (from <= 0 || from > (int)accounts.size() || to <= 0 || to > (int)accounts.size()) {
-            cout << "\033[1;31mIDs inválidos.\033[0m\n";
-            return;
-        }
+        if (value <= 0) throw ValorInvalido("Transferência deve ser > 0.");
 
-        if (accounts[from - 1].withdraw(value)) {
-            accounts[to - 1].deposit(value);
+        Account &src = findAccount(from);
+        Account &dst = findAccount(to);
+
+        if (src.withdraw(value)) {
+            dst.deposit(value);
             string msg = "Transferência de R$" + to_string(value) +
                          " da conta " + to_string(from) + " para " + to_string(to);
             historico.push_back(msg);
             logOperation(msg);
             cout << "\033[1;32mTransferência realizada!\033[0m\n";
         } else {
-            cout << "\033[1;31mSaldo insuficiente!\033[0m\n";
+            throw SaldoInsuficiente("Saldo insuficiente na conta " + to_string(from) + ".");
         }
     }
 
     void showBalance() {
-        int id = read_int("\033[1;34mDigite o ID da conta: \033[0m");
+        int id = read_int(C_CYN "Digite o ID da conta: \033[0m");
         if (id > 0 && id <= accounts.size()) {
             accounts[id - 1].showInfo();
         } else {
@@ -310,8 +352,8 @@ public:
         cin >> escolha;
 
         clearScreen();
-        int id, amount, from, to;
-        string owner, msg_id, msg_amnt, msg_from, msg_to, msg;
+
+        try{
 
         switch (escolha) {
             case 1: createAccount(); break;
@@ -329,6 +371,23 @@ public:
             default:
                 cout << "\033[1;31mOpção inválida!\033[0m\n";
             }
+        }
+        catch (const ContaInexistente &e){
+            logError(e, "Menu/Operacao");
+            cout << C_RED "Erro: " << e.what() << C_RST "\n";
+        }
+        catch (const ValorInvalido &e){
+            logError(e, "Menu/Operacao");
+            cout << C_RED "Valor inválido: " << e.what() << C_RST "\n";
+        }
+        catch (const SaldoInsuficiente &e){
+            logError(e, "Menu/Operacao");
+            cout << C_RED "Operação negada: " << e.what() << C_RST "\n";
+        }
+        catch (const exception &e){
+            logError(e, "Menu/Operacao");
+            cout << C_RED "Falha inesperada: " << e.what() << C_RST "\n";
+        }
             pauseScreen();
         }
     }
