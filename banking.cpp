@@ -14,15 +14,19 @@
 
 using namespace std;
 
+// =========================================
+// DEFINIÇÕES DE CORES (ANSI)
+// =========================================
 #define C_RED   "\033[1;31m"
 #define C_GRN   "\033[1;32m"
 #define C_YEL   "\033[1;33m"
 #define C_CYN   "\033[1;36m"
+#define C_WHT   "\033[1;37m"
 #define C_RST   "\033[0m"
 
 
 // =========================================
-// FUNÇÕES AUXILIARES DE INTERFACE
+/* FUNÇÕES AUXILIARES DE INTERFACE */
 // =========================================
 
 void logError(const exception &e, const string &where){
@@ -45,26 +49,26 @@ void clearScreen() {
 }
 
 void pauseScreen() {
-    cout << "\n\033[1;37mPressione ENTER para continuar...\033[0m";
+    cout << "\n" << C_WHT << "Pressione ENTER para continuar..." << C_RST;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     cin.get();
 }
 
 void loadingAnimation() {
-    cout << "\n\033[1;33mCarregando";
+    cout << "\n" << C_YEL << "Carregando";
     for (int i = 0; i < 3; ++i) {
         cout << ".";
         cout.flush();
         this_thread::sleep_for(chrono::milliseconds(400));
     }
-    cout << "\033[0m\n";
+    cout << C_RST << "\n";
 }
 
 void showTitle() {
     string title = "BANCO TDAH CENTRAL";
     cout << setw(14) << "";
     for (char c : title) {
-        cout << "\033[1;33m" << c << "\033[0m" << flush;
+        cout << C_YEL << c << C_RST << flush;
         this_thread::sleep_for(chrono::milliseconds(80));
     }
 }
@@ -77,7 +81,7 @@ int read_int(string mensagem) {
         if (cin.fail()) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "\033[1;31mEntrada inválida! Digite um número inteiro.\033[0m" << endl;
+            cout << C_RED << "Entrada inválida! Digite um número inteiro." << C_RST << endl;
         } else {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return valor;
@@ -135,12 +139,12 @@ public:
     }
 
     void showInfo(){
-        cout << "\n\033[1;36m-------------------------------------------\033[0m\n";
-        cout << "Conta ID: \033[1;33m" << ID << "\033[0m\n";
-        cout << "Dono: \033[1;33m" << owner << "\033[0m\n";
-        cout << "Saldo: \033[1;32mR$" << amount << "\033[0m\n";
+        cout << "\n" << C_CYN << "-------------------------------------------" << C_RST << "\n";
+        cout << "Conta ID: " << C_YEL << ID << C_RST << "\n";
+        cout << "Dono: " << C_YEL << owner << C_RST << "\n";
+        cout << "Saldo: " << C_GRN << "R$" << amount << C_RST << "\n";
         cout << "Criada em: " << createdAt << endl;
-        cout << "\033[1;36m-------------------------------------------\033[0m\n";
+        cout << C_CYN << "-------------------------------------------" << C_RST << "\n";
     }
 };
 int Account::nextID = 1;
@@ -154,7 +158,7 @@ private:
     void logOperation(const string &msg){
         ofstream log("log.txt", ios::app);
         if(!log.is_open()){
-            cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
+            cerr << C_RED << "Erro ao abrir o arquivo." << C_RST << endl;
         }
         else{
             time_t now = time(0);
@@ -180,7 +184,7 @@ public:
     void loadAccounts() {
         ifstream arquivo("account.txt"); // mesmo nome usado em create_account()
         if (!arquivo.is_open()) {
-            cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
+            cerr << C_RED << "Erro ao abrir o arquivo." << C_RST << endl;
             return;
         }
 
@@ -209,14 +213,14 @@ public:
             // ===== Criar conta e inserir =====
             accounts.emplace_back(owner_str, amount);
         }
-        cout << "\033[1;32mContas carregadas: " << accounts.size() << "\033[0m\n";
+        cout << C_GRN << "Contas carregadas: " << accounts.size() << C_RST << "\n";
         arquivo.close();
     }
 
     void saveAccounts(){
         ofstream arquivo("account.txt", ios::trunc);
         if(!arquivo.is_open()){
-            cerr << "\033[1;31mErro ao abrir o arquivo.\033[0m" << endl;
+            cerr << C_RED << "Erro ao abrir o arquivo." << C_RST << endl;
         }
         for (auto &acc : accounts){
             arquivo << "Created at: " << acc.getTime()
@@ -224,7 +228,7 @@ public:
                     << ", Owner: " << acc.getOwner() 
                     << ", amount: " << acc.getAmount() << "\n";
             if(arquivo.fail()){
-                cerr << "\033[1;31mErro ao carregar as conta no arquivo.\033[0m" << endl;
+                cerr << C_RED << "Erro ao carregar as conta no arquivo." << C_RST << endl;
             }
         }
         arquivo.close();
@@ -235,12 +239,12 @@ public:
     // FUNÇÕES PRINCIPAIS
     // =========================================
     void createAccount() {
-        cout << C_CYN "Digite o nome do dono da conta: \033[0m";
+        cout << C_CYN "Digite o nome do dono da conta: " << C_RST;
         string owner;
         if (cin.peek() == '\n') cin.ignore();
         getline(cin, owner);
 
-        int amount = read_int(C_CYN "Digite o valor para criação da conta: \033[0m");
+        int amount = read_int(string(C_CYN) + "Digite o valor para criação da conta: " + C_RST);
 
         if (owner.empty()) throw ValorInvalido("Nome do proprietário está vazio.");
         if (amount <= 0) throw ValorInvalido("Saldo insuficiente para inicializar a conta.");
@@ -254,8 +258,8 @@ public:
 
     void deposit() {
 
-        int id = read_int(C_CYN "Digite o ID da conta: " C_RST);
-        int amount = read_int(C_CYN "Digite o valor a depositar: \033[0m");
+        int id = read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
+        int amount = read_int(string(C_CYN) + "Digite o valor a depositar: " + C_RST);
         
         if (amount <= 0) throw ValorInvalido("Depósito deve ser > 0.");
 
@@ -269,8 +273,8 @@ public:
 
     void withdraw() {
 
-        int id = read_int(C_CYN "Digite o ID da conta: \033[0m");
-        int amount = read_int(C_CYN "Digite o valor a sacar: \033[0m");
+        int id = read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
+        int amount = read_int(string(C_CYN) + "Digite o valor a sacar: " + C_RST);
 
         if (amount <= 0) throw ValorInvalido("Saque deve ser > 0.");
         
@@ -281,16 +285,16 @@ public:
             historico.push_back(msg);
             logOperation(msg);
 
-            cout << "\033[1;32mSaque realizado!\033[0m\n";
+            cout << C_GRN << "Saque realizado!" << C_RST << "\n";
         } else {
             throw SaldoInsuficiente("Saldo insuficiente para sacar R$" + to_string(amount) + ".");
         }
     }
 
-        void transfer() {
-        int from = read_int(C_CYN "Conta origem: \033[0m");
-        int to = read_int(C_CYN "Conta destino: \033[0m");
-        int value = read_int(C_CYN "Valor: \033[0m");
+    void transfer() {
+        int from = read_int(string(C_CYN) + "Conta origem: " + C_RST);
+        int to = read_int(string(C_CYN) + "Conta destino: " + C_RST);
+        int value = read_int(string(C_CYN) + "Valor: " + C_RST);
 
         if (value <= 0) throw ValorInvalido("Transferência deve ser > 0.");
 
@@ -303,31 +307,31 @@ public:
                          " da conta " + to_string(from) + " para " + to_string(to);
             historico.push_back(msg);
             logOperation(msg);
-            cout << "\033[1;32mTransferência realizada!\033[0m\n";
+            cout << C_GRN << "Transferência realizada!" << C_RST << "\n";
         } else {
             throw SaldoInsuficiente("Saldo insuficiente na conta " + to_string(from) + ".");
         }
     }
 
     void showBalance() {
-        int id = read_int(C_CYN "Digite o ID da conta: \033[0m");
-        if (id > 0 && id <= accounts.size()) {
+        int id = read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
+        if (id > 0 && id <= (int)accounts.size()) {
             accounts[id - 1].showInfo();
         } else {
-            cout << "  \033[1;31mID inválido, digite um ID válido.\033[0m\n";
+            cout << "  " << C_RED << "ID inválido, digite um ID válido." << C_RST << "\n";
         }
     }
 
     void showHistory() {
         if (historico.empty()) {
-            cout << "\033[1;33mNenhuma operação registrada ainda.\033[0m\n";
+            cout << C_YEL << "Nenhuma operação registrada ainda." << C_RST << "\n";
             return;
         }
-        cout << "\n\033[1;36m====== HISTÓRICO DE OPERAÇÕES ======\033[0m\n";
+        cout << "\n" << C_CYN << "====== HISTÓRICO DE OPERAÇÕES ======" << C_RST << "\n";
         for (size_t i = 0; i < historico.size(); ++i) {
-            cout << "\033[1;37m[" << i + 1 << "]\033[0m " << historico[i] << endl;
+            cout << C_WHT << "[" << i + 1 << "]" << C_RST << " " << historico[i] << endl;
         }
-        }
+    }
 
     // ===============================
     // MENU PRINCIPAL
@@ -337,57 +341,57 @@ public:
         int escolha;
         while(true){
             clearScreen();
-        cout << "\033[1;36m\n=============================================\033[0m" << endl;
-        showTitle();
-        cout << "\033[1;36m\n=============================================\033[0m" << endl;
-        cout << "\033[1;37mEscolha uma opção:\033[0m\n";
-        cout << "  \033[1;32m[1]\033[0m Criar uma conta\n";
-        cout << "  \033[1;32m[2]\033[0m Fazer um depósito\n";
-        cout << "  \033[1;32m[3]\033[0m Fazer um saque\n";
-        cout << "  \033[1;32m[4]\033[0m Realizar uma transferência\n";
-        cout << "  \033[1;32m[5]\033[0m Ver o saldo\n";
-        cout << "  \033[1;32m[6]\033[0m Histórico de Operações\n";
-        cout << "  \033[1;31m[7]\033[0m Sair\n\n";
-        cout << "→ ";
-        cin >> escolha;
+            cout << C_CYN << "\n=============================================" << C_RST << endl;
+            showTitle();
+            cout << C_CYN << "\n=============================================" << C_RST << endl;
+            cout << C_WHT << "Escolha uma opção:" << C_RST << "\n";
+            cout << "  " << C_GRN << "[1]" << C_RST << " Criar uma conta\n";
+            cout << "  " << C_GRN << "[2]" << C_RST << " Fazer um depósito\n";
+            cout << "  " << C_GRN << "[3]" << C_RST << " Fazer um saque\n";
+            cout << "  " << C_GRN << "[4]" << C_RST << " Realizar uma transferência\n";
+            cout << "  " << C_GRN << "[5]" << C_RST << " Ver o saldo\n";
+            cout << "  " << C_GRN << "[6]" << C_RST << " Histórico de Operações\n";
+            cout << "  " << C_RED << "[7]" << C_RST << " Sair\n\n";
+            cout << "→ ";
+            cin >> escolha;
 
-        clearScreen();
+            clearScreen();
 
-        try{
+            try{
 
-        switch (escolha) {
-            case 1: createAccount(); break;
-            case 2: deposit(); break;
-            case 3: withdraw(); break;
-            case 4: transfer(); break;
-            case 5: showBalance(); break;
-            case 6: showHistory(); break;
-            case 7:
-                cout << "\n\033[1;32mSalvando dados...\033[0m\n";
-                saveAccounts();
-                loadingAnimation();
-                cout << "\033[1;36mVolte sempre ao Banco TDAH!\033[0m\n";
-                return;
-            default:
-                cout << "\033[1;31mOpção inválida!\033[0m\n";
+                switch (escolha) {
+                    case 1: createAccount(); break;
+                    case 2: deposit(); break;
+                    case 3: withdraw(); break;
+                    case 4: transfer(); break;
+                    case 5: showBalance(); break;
+                    case 6: showHistory(); break;
+                    case 7:
+                        cout << "\n" << C_GRN << "Salvando dados..." << C_RST << "\n";
+                        saveAccounts();
+                        loadingAnimation();
+                        cout << C_CYN << "Volte sempre ao Banco TDAH!" << C_RST << "\n";
+                        return;
+                    default:
+                        cout << C_RED << "Opção inválida!" << C_RST << "\n";
+                }
             }
-        }
-        catch (const ContaInexistente &e){
-            logError(e, "Menu/Operacao");
-            cout << C_RED "Erro: " << e.what() << C_RST "\n";
-        }
-        catch (const ValorInvalido &e){
-            logError(e, "Menu/Operacao");
-            cout << C_RED "Valor inválido: " << e.what() << C_RST "\n";
-        }
-        catch (const SaldoInsuficiente &e){
-            logError(e, "Menu/Operacao");
-            cout << C_RED "Operação negada: " << e.what() << C_RST "\n";
-        }
-        catch (const exception &e){
-            logError(e, "Menu/Operacao");
-            cout << C_RED "Falha inesperada: " << e.what() << C_RST "\n";
-        }
+            catch (const ContaInexistente &e){
+                logError(e, "Menu/Operacao");
+                cout << C_RED << "Erro: " << e.what() << C_RST << "\n";
+            }
+            catch (const ValorInvalido &e){
+                logError(e, "Menu/Operacao");
+                cout << C_RED << "Valor inválido: " << e.what() << C_RST << "\n";
+            }
+            catch (const SaldoInsuficiente &e){
+                logError(e, "Menu/Operacao");
+                cout << C_RED << "Operação negada: " << e.what() << C_RST << "\n";
+            }
+            catch (const exception &e){
+                logError(e, "Menu/Operacao");
+                cout << C_RED << "Falha inesperada: " << e.what() << C_RST << "\n";
+            }
             pauseScreen();
         }
     }
