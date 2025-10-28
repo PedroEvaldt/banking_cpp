@@ -11,6 +11,8 @@
 #include <cctype>
 #include <stdexcept>
 #include <typeinfo>
+#include <soci/soci.h>
+#include <soci/postgresql/soci-postgresql.h>
 
 using namespace std;
 
@@ -24,6 +26,14 @@ using namespace std;
 #define C_WHT   "\033[1;37m"
 #define C_RST   "\033[0m"
 
+// =========================================
+// CONFIGURAÇÃO DO BANCO DE DADOS
+// =========================================
+soci::session &db(){
+    static soci::session sql(soci::postgresql,
+    "dbname=banktdah user=postgres password=971325 host=localhost");
+    return sql;
+}
 
 // =========================================
 /* FUNÇÕES AUXILIARES DE INTERFACE */
@@ -107,21 +117,14 @@ public:
 
 class Account{
 private:
-    static int nextID;
     int ID;
     string owner;
     int amount;
     string createdAt;
 
 public:
-    Account(string owner, int amount)
-    : ID(nextID++), owner(owner), amount(amount)
-    {
-        time_t now = time(0);
-        string t = ctime(&now);
-        t.pop_back();
-        createdAt = t;
-    }
+    Account(int id, string owner, int amount, string createdAt)
+    : ID(id), owner(owner), amount(amount), createdAt(std::move(createdAt)) {}
 
 
     int getId() const {return ID;}
@@ -147,7 +150,6 @@ public:
         cout << C_CYN << "-------------------------------------------" << C_RST << "\n";
     }
 };
-int Account::nextID = 1;
 
 class BankSystem{
 private:
@@ -182,58 +184,24 @@ public:
     // SALVAR e CARREGAR CONTAS
     // ===============================
     void loadAccounts() {
-        ifstream arquivo("account.txt"); // mesmo nome usado em create_account()
-        if (!arquivo.is_open()) {
-            cerr << C_RED << "Erro ao abrir o arquivo." << C_RST << endl;
-            return;
-        }
-
-        string linha;
-        while (getline(arquivo, linha)) {
-            if (linha.empty()) continue;
-
-            size_t created_pos = linha.find("Created at: ");
-            size_t id_pos = linha.find("ID: ");
-            size_t owner_pos = linha.find("Owner: ");
-            size_t amount_pos = linha.find("amount: "); // minúsculo igual ao create_account()
-
-            if (id_pos == string::npos || owner_pos == string::npos || amount_pos == string::npos)
-                continue;
-
-            // ===== Extrair Owner =====
-            string owner_str = linha.substr(owner_pos + 7, amount_pos - (owner_pos + 7));
-            // remove espaços e vírgulas finais 
-            owner_str.erase(owner_str.find_last_not_of(" ,") + 1);
-
-            // ===== Extrair Amount =====
-            string amount_str = linha.substr(amount_pos + 8);
-            amount_str.erase(remove_if(amount_str.begin(), amount_str.end(), ::isspace), amount_str.end());
-            int amount = stoi(amount_str);
-
-            // ===== Criar conta e inserir =====
-            accounts.emplace_back(owner_str, amount);
-        }
-        cout << C_GRN << "Contas carregadas: " << accounts.size() << C_RST << "\n";
-        arquivo.close();
-    }
-
-    void saveAccounts(){
-        ofstream arquivo("account.txt", ios::trunc);
-        if(!arquivo.is_open()){
-            cerr << C_RED << "Erro ao abrir o arquivo." << C_RST << endl;
-        }
-        for (auto &acc : accounts){
-            arquivo << "Created at: " << acc.getTime()
-                    << "  ID: " << acc.getId()
-                    << ", Owner: " << acc.getOwner() 
-                    << ", amount: " << acc.getAmount() << "\n";
-            if(arquivo.fail()){
-                cerr << C_RED << "Erro ao carregar as conta no arquivo." << C_RST << endl;
+        try {
+            accounts.clear();
+            soci::rowset<soci::row> rs = (db().prepare <<
+                "SELECT id, owner, amount, to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') "
+                "FROM accounts ORDER BY id ASC");
+            for (auto const &r : rs){
+                int id = r.get<int>(0);
+                string owner = r.get<string>(1);
+                int amount = r.get<int>(2);
+                string created = r.get<string>(3);
+                accounts.emplace_back(id, owner, amount, created);
             }
+            cout << C_GRN "Contas carregada: " << accounts.size() << C_RST"\n";
+        } catch (const exception &e){
+            logError(e, "loadAccounts/DB");
+            cerr << C_RED "Falha ao carregar do banco: " << e.what() << C_RST "\n";
         }
-        arquivo.close();
     }
-    
 
     // =========================================
     // FUNÇÕES PRINCIPAIS
@@ -249,7 +217,16 @@ public:
         if (owner.empty()) throw ValorInvalido("Nome do proprietário está vazio.");
         if (amount <= 0) throw ValorInvalido("Saldo insuficiente para inicializar a conta.");
 
-        accounts.emplace_back(owner, amount);
+        try {
+            soci::transaction tr(db());
+            int id = 0;
+            string created;
+            
+            db() << "INSERT INTO accounts(owner, amount) VALUES(:o, :a) "
+                    "RETURNING id, to_char(created_at, 'YYYY-MM-DD HH24:MI:SS')",
+                    soci::use(owner, "o"), soci::use(amount, "a"),
+                    soci::into(id), soci::into(created);
+        }
         
         string msg = "Conta criada para " + owner + " com saldo R$" + to_string(amount);
         historico.push_back(msg);
@@ -359,39 +336,37 @@ public:
 
             try{
 
-                switch (escolha) {
-                    case 1: createAccount(); break;
-                    case 2: deposit(); break;
-                    case 3: withdraw(); break;
-                    case 4: transfer(); break;
-                    case 5: showBalance(); break;
-                    case 6: showHistory(); break;
-                    case 7:
-                        cout << "\n" << C_GRN << "Salvando dados..." << C_RST << "\n";
-                        saveAccounts();
-                        loadingAnimation();
-                        cout << C_CYN << "Volte sempre ao Banco TDAH!" << C_RST << "\n";
-                        return;
-                    default:
-                        cout << C_RED << "Opção inválida!" << C_RST << "\n";
-                }
+        switch (escolha) {
+            case 1: createAccount(); break;
+            case 2: deposit(); break;
+            case 3: withdraw(); break;
+            case 4: transfer(); break;
+            case 5: showBalance(); break;
+            case 6: showHistory(); break;
+            case 7:
+                loadingAnimation();
+                cout << "\033[1;36mVolte sempre ao Banco TDAH!\033[0m\n";
+                return;
+            default:
+                cout << "\033[1;31mOpção inválida!\033[0m\n";
             }
-            catch (const ContaInexistente &e){
-                logError(e, "Menu/Operacao");
-                cout << C_RED << "Erro: " << e.what() << C_RST << "\n";
-            }
-            catch (const ValorInvalido &e){
-                logError(e, "Menu/Operacao");
-                cout << C_RED << "Valor inválido: " << e.what() << C_RST << "\n";
-            }
-            catch (const SaldoInsuficiente &e){
-                logError(e, "Menu/Operacao");
-                cout << C_RED << "Operação negada: " << e.what() << C_RST << "\n";
-            }
-            catch (const exception &e){
-                logError(e, "Menu/Operacao");
-                cout << C_RED << "Falha inesperada: " << e.what() << C_RST << "\n";
-            }
+        }
+        catch (const ContaInexistente &e){
+            logError(e, "Menu/Operacao");
+            cout << C_RED "Erro: " << e.what() << C_RST "\n";
+        }
+        catch (const ValorInvalido &e){
+            logError(e, "Menu/Operacao");
+            cout << C_RED "Valor inválido: " << e.what() << C_RST "\n";
+        }
+        catch (const SaldoInsuficiente &e){
+            logError(e, "Menu/Operacao");
+            cout << C_RED "Operação negada: " << e.what() << C_RST "\n";
+        }
+        catch (const exception &e){
+            logError(e, "Menu/Operacao");
+            cout << C_RED "Falha inesperada: " << e.what() << C_RST "\n";
+        }
             pauseScreen();
         }
     }

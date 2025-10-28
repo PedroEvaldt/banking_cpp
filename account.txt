@@ -1,0 +1,3 @@
+Created at: Mon Oct 27 18:27:59 2025  ID: 1, Owner: Pedro Evaldt, amount: 63
+Created at: Mon Oct 27 18:27:59 2025  ID: 2, Owner: Hamido Baklizi, amount: 5456
+Created at: Mon Oct 27 18:28:33 2025  ID: 3, Owner: Roberto Carlos, amount: 6000

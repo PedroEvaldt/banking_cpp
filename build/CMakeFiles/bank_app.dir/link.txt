@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/bank_app.dir/banking.cpp.o -o bank_app   -L/usr/local/lib  -Wl,-rpath,/usr/local/lib -lsoci_core -lsoci_postgresql -lpq 
