@@ -1,4 +1,4 @@
-# Install script for directory: /home/pedro_evaldt/Projetos/pessoal/C++/Estudos/banking_cpp
+# Install script for directory: /media/pedro/SSD M2/Programas/C++/banking_cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/pedro_evaldt/Projetos/pessoal/C++/Estudos/banking_cpp/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/media/pedro/SSD M2/Programas/C++/banking_cpp/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

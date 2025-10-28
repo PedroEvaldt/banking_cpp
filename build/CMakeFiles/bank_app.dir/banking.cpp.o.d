@@ -1,5 +1,5 @@
 CMakeFiles/bank_app.dir/banking.cpp.o: \
- /home/pedro_evaldt/Projetos/pessoal/C++/Estudos/banking_cpp/banking.cpp \
+ /media/pedro/SSD\ M2/Programas/C++/banking_cpp/banking.cpp \
  /usr/include/stdc-predef.h /usr/include/c++/13/iostream \
  /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
@@ -182,4 +182,71 @@ CMakeFiles/bank_app.dir/banking.cpp.o: \
  /usr/include/c++/13/bits/uniform_int_dist.h \
  /usr/include/c++/13/bits/stl_tempbuf.h \
  /usr/include/c++/13/pstl/glue_algorithm_defs.h \
- /usr/include/c++/13/pstl/execution_defs.h
+ /usr/include/c++/13/pstl/execution_defs.h /usr/local/include/soci/soci.h \
+ /usr/local/include/soci/soci-platform.h /usr/include/string.h \
+ /usr/include/strings.h /usr/include/c++/13/cstring \
+ /usr/include/c++/13/memory \
+ /usr/include/c++/13/bits/stl_raw_storage_iter.h \
+ /usr/include/c++/13/bits/align.h /usr/include/c++/13/bits/shared_ptr.h \
+ /usr/include/c++/13/bits/shared_ptr_base.h \
+ /usr/include/c++/13/bits/allocated_ptr.h \
+ /usr/include/c++/13/ext/aligned_buffer.h \
+ /usr/include/c++/13/ext/concurrence.h \
+ /usr/include/c++/13/bits/shared_ptr_atomic.h \
+ /usr/include/c++/13/bits/atomic_base.h \
+ /usr/include/c++/13/bits/atomic_lockfree_defines.h \
+ /usr/include/c++/13/backward/auto_ptr.h \
+ /usr/include/c++/13/pstl/glue_memory_defs.h \
+ /usr/local/include/soci/soci-config.h \
+ /usr/local/include/soci/backend-loader.h \
+ /usr/local/include/soci/soci-backend.h /usr/local/include/soci/error.h \
+ /usr/include/c++/13/map /usr/include/c++/13/bits/stl_tree.h \
+ /usr/include/c++/13/bits/node_handle.h \
+ /usr/include/c++/13/bits/stl_map.h \
+ /usr/include/c++/13/bits/stl_multimap.h \
+ /usr/include/c++/13/bits/erase_if.h /usr/local/include/soci/blob.h \
+ /usr/local/include/soci/blob-exchange.h \
+ /usr/local/include/soci/into-type.h /usr/local/include/soci/type-ptr.h \
+ /usr/local/include/soci/exchange-traits.h \
+ /usr/local/include/soci/soci-types.h \
+ /usr/local/include/soci/type-conversion-traits.h \
+ /usr/local/include/soci/is-detected.h \
+ /usr/local/include/soci/type-wrappers.h \
+ /usr/local/include/soci/use-type.h /usr/local/include/soci/column-info.h \
+ /usr/local/include/soci/type-conversion.h \
+ /usr/local/include/soci/values.h /usr/local/include/soci/statement.h \
+ /usr/local/include/soci/bind-values.h \
+ /usr/local/include/soci/exchange-traits.h \
+ /usr/local/include/soci/into-type.h /usr/local/include/soci/into.h \
+ /usr/local/include/soci/soci-backend.h \
+ /usr/local/include/soci/use-type.h /usr/local/include/soci/use.h \
+ /usr/local/include/soci/into.h /usr/local/include/soci/use.h \
+ /usr/local/include/soci/row.h /usr/local/include/soci/type-holder.h \
+ /usr/include/c++/13/utility /usr/include/c++/13/bits/stl_relops.h \
+ /usr/local/include/soci/connection-pool.h \
+ /usr/local/include/soci/fixed-size-ints.h \
+ /usr/local/include/soci/once-temp-type.h \
+ /usr/local/include/soci/ref-counted-statement.h \
+ /usr/local/include/soci/soci-unicode.h \
+ /usr/local/include/soci/prepare-temp-type.h \
+ /usr/local/include/soci/ref-counted-prepare-info.h \
+ /usr/local/include/soci/procedure.h \
+ /usr/local/include/soci/row-exchange.h /usr/local/include/soci/rowid.h \
+ /usr/local/include/soci/rowid-exchange.h \
+ /usr/local/include/soci/rowset.h /usr/include/c++/13/iterator \
+ /usr/include/c++/13/bits/stream_iterator.h \
+ /usr/local/include/soci/session.h \
+ /usr/local/include/soci/query_transformation.h \
+ /usr/local/include/soci/connection-parameters.h \
+ /usr/local/include/soci/logger.h /usr/local/include/soci/log-context.h \
+ /usr/include/c++/13/forward_list /usr/include/c++/13/bits/forward_list.h \
+ /usr/include/c++/13/bits/forward_list.tcc \
+ /usr/local/include/soci/transaction.h \
+ /usr/local/include/soci/values-exchange.h \
+ /usr/local/include/soci/std-optional.h /usr/include/c++/13/optional \
+ /usr/include/c++/13/bits/enable_special_members.h \
+ /usr/local/include/soci/postgresql/soci-postgresql.h \
+ /usr/include/c++/13/unordered_map \
+ /usr/include/c++/13/bits/unordered_map.h \
+ /usr/include/c++/13/bits/hashtable.h \
+ /usr/include/c++/13/bits/hashtable_policy.h

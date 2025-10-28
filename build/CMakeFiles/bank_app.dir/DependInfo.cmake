@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/pedro_evaldt/Projetos/pessoal/C++/Estudos/banking_cpp/banking.cpp" "CMakeFiles/bank_app.dir/banking.cpp.o" "gcc" "CMakeFiles/bank_app.dir/banking.cpp.o.d"
+  "/media/pedro/SSD M2/Programas/C++/banking_cpp/banking.cpp" "CMakeFiles/bank_app.dir/banking.cpp.o" "gcc" "CMakeFiles/bank_app.dir/banking.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

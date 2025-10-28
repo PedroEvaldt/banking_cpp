@@ -1,6 +1,0 @@
-[Mon Oct 27 12:18:04 2025] Conta criada para Pedro Evaldt com saldo R$1500
-[Mon Oct 27 12:18:16 2025] Depósito de R$19 na conta 1
-[Mon Oct 27 12:18:24 2025] Conta criada para Hamido Baklizi com saldo R$5000
-[Mon Oct 27 12:18:37 2025] Transferência de R$456 da conta 1 para 2
-[Mon Oct 27 18:28:33 2025] Conta criada para Roberto Carlos com saldo R$5000
-[Mon Oct 27 18:29:01 2025] Transferência de R$1000 da conta 1 para 3
