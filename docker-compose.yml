@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres-bank
+    environment:
+      POSTGRES_DB: banktdah
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 971325
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    networks:
+      - banknet
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+  app:
+    build: .
+    container_name: bank-system
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - banknet
+    command: ["./bin/bank_app"]
+
+networks:
+  banknet:
+volumes:
+  postgres_data:

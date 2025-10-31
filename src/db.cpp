@@ -7,7 +7,7 @@
 // =========================================
 soci::session &db(){
     static soci::session sql(soci::postgresql,
-    "dbname=banktdah user=postgres password=971325 host=localhost");
+    "dbname=banktdah user=postgres password=971325 host=postgres-bank");
     return sql;
 }
 
