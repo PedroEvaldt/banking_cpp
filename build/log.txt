@@ -1,4 +1,0 @@
-[Tue Oct 28 18:26:34 2025] Conta criada para Pedro Evaldt  (id 1) com saldo R$2027
-[Tue Oct 28 18:26:55 2025] Conta criada para Muhamad Baklizi  (id 2) com saldo R$1750
-[Tue Oct 28 18:27:16 2025] Conta criada para Mohamad Khaled (id 3) com saldo R$3456
-[Tue Oct 28 18:31:29 2025] Transferência de R$600 da conta 2 para 1
