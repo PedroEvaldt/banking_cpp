@@ -8,9 +8,6 @@ class BankSystem{
 private:
     std::unordered_map<int, Account> accounts;
     std::vector<std::string> historico;
-
-    // Função interna que registra o log do sistema
-    void logOperation(const std::string &msg);
     Account& findAccount(int id);
 
 public:

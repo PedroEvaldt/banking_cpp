@@ -11,7 +11,8 @@ set(SOURCES
     src/bank_system.cpp
     src/db.cpp
     src/main.cpp
-    src/ui_utils.cpp)
+    src/ui_utils.cpp
+    src/logger.cpp)
 
 # Threads para std::thread
 find_package(Threads REQUIRED)

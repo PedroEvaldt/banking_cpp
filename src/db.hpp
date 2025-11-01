@@ -8,7 +8,3 @@
 // =========================================
 soci::session &db();
 
-// =========================================
-/* FUNÇÕES AUXILIARES DE INTERFACE */
-// =========================================
-void logError(const std::exception &e, const std::string &where);

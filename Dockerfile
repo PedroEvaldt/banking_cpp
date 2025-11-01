@@ -27,5 +27,6 @@ COPY . .
 # Compila o projeto
 RUN mkdir build && cd build && cmake .. && make -j$(nproc)
 
-# Executa o programa
+COPY wait-for-db.sh .
+ENTRYPOINT ["./wait-for-db.sh"]
 CMD ["./bin/bank_app"]
