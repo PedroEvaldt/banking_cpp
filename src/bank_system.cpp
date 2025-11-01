@@ -8,6 +8,7 @@
 #include <ctime>
 #include <string>
 #include <stdexcept>
+using namespace std;
 
 void BankSystem::logOperation(const string &msg){
     ofstream log("log.txt", ios::app);

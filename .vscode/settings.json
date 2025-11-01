@@ -57,6 +57,9 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "cstring": "cpp",
+        "forward_list": "cpp",
+        "map": "cpp"
     }
 }

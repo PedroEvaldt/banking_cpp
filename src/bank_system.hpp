@@ -3,14 +3,13 @@
 #include <vector>
 #include <string>
 
-using namespace std;
 class BankSystem{
 private:
-    vector<Account> accounts;
-    vector<string> historico;
+    std::vector<Account> accounts;
+    std::vector<std::string> historico;
 
     // Função interna que registra o log do sistema
-    void logOperation(const string &msg);
+    void logOperation(const std::string &msg);
     Account& findAccount(int id);
 
 public:

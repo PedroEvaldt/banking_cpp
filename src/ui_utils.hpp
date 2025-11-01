@@ -1,5 +1,4 @@
 #include <string>
-using namespace std;
 // =========================================
 // DEFINIÇÕES DE CORES (ANSI)
 // =========================================
@@ -14,6 +13,6 @@ void clearScreen();
 void pauseScreen();
 void loadingAnimation();
 void showTitle();
-int read_int(string mensagem);
+int read_int(std::string mensagem);
 
 

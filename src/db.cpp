@@ -2,6 +2,8 @@
 #include <fstream>
 #include <ctime>
 #include <typeinfo>
+using namespace std;
+
 // =========================================
 // CONFIGURAÇÃO DO BANCO DE DADOS
 // =========================================

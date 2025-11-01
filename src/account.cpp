@@ -2,7 +2,7 @@
 #include "ui_utils.hpp"
 #include <iostream>
 #include <iomanip>
-
+using namespace std;
 
 Account::Account(int id, string owner, int amount, string createdAt)
     : ID(id), owner(owner), amount(amount), createdAt(std::move(createdAt)) {}

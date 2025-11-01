@@ -3,7 +3,6 @@
 #include <string>
 #include <exception>
 
-using namespace std;
 // =========================================
 // CONFIGURAÇÃO DO BANCO DE DADOS
 // =========================================
@@ -12,4 +11,4 @@ soci::session &db();
 // =========================================
 /* FUNÇÕES AUXILIARES DE INTERFACE */
 // =========================================
-void logError(const exception &e, const string &where);
+void logError(const std::exception &e, const std::string &where);

@@ -1,20 +1,19 @@
 #pragma once
 #include <string>
 
-using namespace std;
 class Account{
 private:
     int ID;
-    string owner;
+    std::string owner;
     int amount;
-    string createdAt;
+    std::string createdAt;
 
 public:
-    Account(int id, string owner, int amount, string createdAt);
+    Account(int id, std::string owner, int amount, std::string createdAt);
     int getId() const;
-    string getOwner() const;
+    std::string getOwner() const;
     int getAmount() const;
-    string getTime() const;
+    std::string getTime() const;
     void deposit(int value);
     bool withdraw(int value);
     void showInfo();
