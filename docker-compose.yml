@@ -16,6 +16,11 @@ services:
       interval: 5s
       retries: 5
   app:
+    environment:
+      PGHOST: postgres-bank
+      PGUSER: postgres
+      PGPASSWORD: 971325
+      PGDATABASE: banktdah
     build: .
     container_name: bank-system
     depends_on:

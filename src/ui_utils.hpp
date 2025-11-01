@@ -9,10 +9,11 @@
 #define C_WHT   "\033[1;37m"
 #define C_RST   "\033[0m"
 
+namespace ui{
 void clearScreen();
 void pauseScreen();
 void loadingAnimation();
 void showTitle();
 int read_int(std::string mensagem);
-
+}
 

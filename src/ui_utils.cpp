@@ -10,6 +10,7 @@
 
 using namespace std;
 
+namespace ui{
 void clearScreen() {
 #ifdef _WIN32
     system("cls");
@@ -58,5 +59,5 @@ int read_int(string mensagem) {
         }
     }
 }
-
+}
 

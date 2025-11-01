@@ -8,10 +8,21 @@ using namespace std;
 // CONFIGURAÇÃO DO BANCO DE DADOS
 // =========================================
 soci::session &db(){
-    static soci::session sql(soci::postgresql,
-    "dbname=banktdah user=postgres password=971325 host=postgres-bank");
-    return sql;
-}
+    static soci::session sql;
+    if(!sql.is_connected()){
+        const char *host = getenv("PGHOST");
+        const char *user = getenv("PGUSER");
+        const char *pass = getenv("PGPASSWORD");
+        const char *dbname = getenv("PGDATABASE");
+        std::string conn = "dbname=" + std::string(dbname ? dbname : "banktdah") +
+                           " user=" + std::string(user ? user : "postgres") +
+                           " password=" + std::string(pass ? pass : "") +
+                           " host=" + std::string(host ? host : "localhost");
+        sql.open(soci::postgresql, conn);
+        }
+        return sql;
+    }
+
 
 // =========================================
 /* FUNÇÕES AUXILIARES DE INTERFACE */

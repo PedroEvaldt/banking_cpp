@@ -24,12 +24,14 @@ void BankSystem::logOperation(const string &msg){
     }
 }
 
-Account& BankSystem::findAccount(int id){
-    if (id <= 0 || id > static_cast<int>(accounts.size())){
-        throw ContaInexistente("ID " + to_string(id) + " não existe.");
+Account& BankSystem::findAccount(int id) {
+    auto it = accounts.find(id);
+    if (it == accounts.end()) {
+        throw ContaInexistente("ID " + std::to_string(id) + " não existe.");
     }
-    return accounts[id - 1];
+    return it->second;
 }
+
 
 // ===============================
 // SALVAR e CARREGAR CONTAS
@@ -45,7 +47,7 @@ void BankSystem::loadAccounts() {
             string owner = r.get<string>(1);
             int amount = r.get<int>(2);
             string created = r.get<string>(3);
-            accounts.emplace_back(id, owner, amount, created);
+            accounts.emplace(id, Account{id, owner, amount, created});
         }
         cout << C_GRN "Contas carregada: " << accounts.size() << C_RST"\n";
     } catch (const exception &e){
@@ -63,7 +65,7 @@ string owner;
 if (cin.peek() == '\n') cin.ignore();
 getline(cin, owner);
 
-int amount = read_int(C_CYN "Digite o valor para criação da conta: \033[0m");
+int amount = ui::read_int(C_CYN "Digite o valor para criação da conta: \033[0m");
 
 if (owner.empty()) throw ValorInvalido("Nome do proprietário está vazio.");
 if (amount <= 0) throw ValorInvalido("Saldo insuficiente para inicializar a conta.");
@@ -84,7 +86,7 @@ try {
 
     tr.commit(); // COMMIT
 
-    accounts.emplace_back(id, owner, amount, created);
+    accounts.emplace(id, Account{id, owner, amount, created});
 
     string msg = "Conta criada para " + owner + " (id " + to_string(id) + ") com saldo R$" + to_string(amount);
     historico.push_back(msg);
@@ -98,8 +100,8 @@ try {
 
 void BankSystem::deposit() {
 
-    int id = read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
-    int amount = read_int(string(C_CYN) + "Digite o valor a depositar: " + C_RST);
+    int id = ui::read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
+    int amount = ui::read_int(string(C_CYN) + "Digite o valor a depositar: " + C_RST);
     
     if (amount <= 0) throw ValorInvalido("Depósito deve ser > 0.");
 
@@ -109,7 +111,7 @@ void BankSystem::deposit() {
         soci::transaction tr(db());
         db() << "UPDATE accounts SET amount = amount + :a WHERE id = :i",
                 soci::use(amount, "a"), soci::use(id, "i");
-        db() << "INSERT INTO operations(account_id, type, amount)"
+        db() << "INSERT INTO operations(account_id, kind, amount)"
                 "VALUES(:i, 'deposit', :a)",
                 soci::use(id, "i"), soci::use(amount, "a");
         tr.commit();
@@ -129,8 +131,8 @@ void BankSystem::deposit() {
 
 void BankSystem::withdraw() {
 
-    int id = read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
-    int amount = read_int(string(C_CYN) + "Digite o valor a sacar: " + C_RST);
+    int id = ui::read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
+    int amount = ui::read_int(string(C_CYN) + "Digite o valor a sacar: " + C_RST);
 
     if (amount <= 0) throw ValorInvalido("Saque deve ser > 0.");
     
@@ -174,9 +176,9 @@ void BankSystem::withdraw() {
 }
 
 void BankSystem::transfer() {
-    int from = read_int(string(C_CYN) + "Conta origem: " + C_RST);
-    int to = read_int(string(C_CYN) + "Conta destino: " + C_RST);
-    int value = read_int(string(C_CYN) + "Valor: " + C_RST);
+    int from = ui::read_int(string(C_CYN) + "Conta origem: " + C_RST);
+    int to = ui::read_int(string(C_CYN) + "Conta destino: " + C_RST);
+    int value = ui::read_int(string(C_CYN) + "Valor: " + C_RST);
 
     if (value <= 0) throw ValorInvalido("Transferência deve ser > 0.");
 
@@ -232,11 +234,13 @@ void BankSystem::transfer() {
 }
 
 void BankSystem::showBalance() {
-    int id = read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
-    if (id > 0 && id <= (int)accounts.size()) {
-        accounts[id - 1].showInfo();
-    } else {
-        cout << "  " << C_RED << "ID inválido, digite um ID válido." << C_RST << "\n";
+    int id = ui::read_int(string(C_CYN) + "Digite o ID da conta: " + C_RST);
+    auto it = accounts.find(id);
+    if (it == accounts.end()){
+        throw ContaInexistente("ID " + to_string(id) + " não existe.");
+    }
+    else {
+        it->second.showInfo();
     }
 }
 
@@ -258,9 +262,9 @@ void BankSystem::run(){
     loadAccounts();
     int escolha;
     while(true){
-        clearScreen();
+        ui::clearScreen();
         cout << C_CYN << "\n=============================================" << C_RST << endl;
-        showTitle();
+        ui::showTitle();
         cout << C_CYN << "\n=============================================" << C_RST << endl;
         cout << C_WHT << "Escolha uma opção:" << C_RST << "\n";
         cout << "  " << C_GRN << "[1]" << C_RST << " Criar uma conta\n";
@@ -273,7 +277,7 @@ void BankSystem::run(){
         cout << "→ ";
         cin >> escolha;
 
-        clearScreen();
+        ui::clearScreen();
 
         try{
 
@@ -285,7 +289,7 @@ void BankSystem::run(){
         case 5: showBalance(); break;
         case 6: showHistory(); break;
         case 7:
-            loadingAnimation();
+            ui::loadingAnimation();
             cout << "\033[1;36mVolte sempre ao Banco TDAH!\033[0m\n";
             return;
         default:
@@ -308,6 +312,6 @@ void BankSystem::run(){
         logError(e, "Menu/Operacao");
         cout << C_RED "Falha inesperada: " << e.what() << C_RST "\n";
     }
-        pauseScreen();
+        ui::pauseScreen();
     }
 }
