@@ -8,21 +8,10 @@
 #include <ctime>
 #include <string>
 #include <stdexcept>
-using namespace std;
+#include "logger.hpp"
 
-void BankSystem::logOperation(const string &msg){
-    ofstream log("log.txt", ios::app);
-    if(!log.is_open()){
-        cerr << C_RED << "Erro ao abrir o arquivo." << C_RST << endl;
-    }
-    else{
-        time_t now = time(0);
-        string time = ctime(&now);
-        time.pop_back();
-        log << "[" << time << "] " << msg << endl;
-        log.close();
-    }
-}
+using namespace std;
+Logger logger("logger.txt");
 
 Account& BankSystem::findAccount(int id) {
     auto it = accounts.find(id);
@@ -51,7 +40,7 @@ void BankSystem::loadAccounts() {
         }
         cout << C_GRN "Contas carregada: " << accounts.size() << C_RST"\n";
     } catch (const exception &e){
-        logError(e, "loadAccounts/DB");
+        (e, "loadAccounts/DB");
         cerr << C_RED "Falha ao carregar do banco: " << e.what() << C_RST "\n";
     }
 }
@@ -90,10 +79,10 @@ try {
 
     string msg = "Conta criada para " + owner + " (id " + to_string(id) + ") com saldo R$" + to_string(amount);
     historico.push_back(msg);
-    logOperation(msg);
+    logger.info(msg);
     cout << "\033[1;32mConta criada! ID: " << id << "\033[0m\n";
 } catch (const std::exception &e) {
-    logError(e, "createAccount/DB");
+    logger.error("createAccount/DB", e);
     throw; // cai nos seus catchs do menu
 }
 }
@@ -119,10 +108,10 @@ void BankSystem::deposit() {
         acc.deposit(amount);
         string msg = "Depósito de R$" + to_string(amount) + " na conta " + to_string(id);
         historico.push_back(msg);
-        logOperation(msg);
+        logger.info(msg);
         cout << C_GRN "Depósito realizado!" << C_RST "\n";
     } catch (const exception &e){
-        logError(e, "deposit/DB");
+        logger.error("deposit/DB", e);
         throw runtime_error("Falha ao processar depósito: " + string(e.what()));
     }
 
@@ -167,10 +156,10 @@ void BankSystem::withdraw() {
 
         string msg = "Saque de R$" + to_string(amount) + " da conta " + to_string(id);
         historico.push_back(msg);
-        logOperation(msg);
+        logger.info(msg);
         cout << "\033[1;32mSaque realizado!\033[0m\n";
         } catch (const std::exception &e) {
-            logError(e, "withdraw/DB");
+            logger.error("withdraw/DB", e);
             throw;
     }
 }
@@ -222,10 +211,10 @@ void BankSystem::transfer() {
         string msg = "Transferência de R$" + to_string(value) +
                     " da conta " + to_string(from) + " para " + to_string(to);
         historico.push_back(msg);
-        logOperation(msg);
+        logger.info(msg);
         cout << "\033[1;32mTransferência realizada!\033[0m\n";
     } catch (const std::exception &e) {
-        logError(e, "transfer/DB");
+        logger.error("transfer/DB", e);
         // reverte cache em caso de erro
         src.deposit(value);
         dst.withdraw(value);
@@ -297,19 +286,19 @@ void BankSystem::run(){
         }
     }
     catch (const ContaInexistente &e){
-        logError(e, "Menu/Operacao");
+        logger.error("Menu/Operacao", e);
         cout << C_RED "Erro: " << e.what() << C_RST "\n";
     }
     catch (const ValorInvalido &e){
-        logError(e, "Menu/Operacao");
+        logger.error("Menu/Operacao", e);
         cout << C_RED "Valor inválido: " << e.what() << C_RST "\n";
     }
     catch (const SaldoInsuficiente &e){
-        logError(e, "Menu/Operacao");
+        logger.error("Menu/Operacao", e);
         cout << C_RED "Operação negada: " << e.what() << C_RST "\n";
     }
     catch (const exception &e){
-        logError(e, "Menu/Operacao");
+        logger.error("Menu/Operacao", e);
         cout << C_RED "Falha inesperada: " << e.what() << C_RST "\n";
     }
         ui::pauseScreen();
