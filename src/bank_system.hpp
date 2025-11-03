@@ -1,5 +1,6 @@
 #include "account.hpp"
 #include "ui_utils.hpp"
+#include "operations.hpp"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -7,10 +8,7 @@
 class BankSystem{
 private:
     std::unordered_map<int, Account> accounts;
-    std::vector<std::string> historico;
-
-    // Função interna que registra o log do sistema
-    void logOperation(const std::string &msg);
+    std::vector<Operation> loadHistory(int accountId);
     Account& findAccount(int id);
 
 public:

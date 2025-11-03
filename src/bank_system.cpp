@@ -8,21 +8,11 @@
 #include <ctime>
 #include <string>
 #include <stdexcept>
-using namespace std;
+#include "logger.hpp"
 
-void BankSystem::logOperation(const string &msg){
-    ofstream log("log.txt", ios::app);
-    if(!log.is_open()){
-        cerr << C_RED << "Erro ao abrir o arquivo." << C_RST << endl;
-    }
-    else{
-        time_t now = time(0);
-        string time = ctime(&now);
-        time.pop_back();
-        log << "[" << time << "] " << msg << endl;
-        log.close();
-    }
-}
+
+using namespace std;
+Logger logger("logger.txt");
 
 Account& BankSystem::findAccount(int id) {
     auto it = accounts.find(id);
@@ -51,7 +41,7 @@ void BankSystem::loadAccounts() {
         }
         cout << C_GRN "Contas carregada: " << accounts.size() << C_RST"\n";
     } catch (const exception &e){
-        logError(e, "loadAccounts/DB");
+        (e, "loadAccounts/DB");
         cerr << C_RED "Falha ao carregar do banco: " << e.what() << C_RST "\n";
     }
 }
@@ -89,11 +79,10 @@ try {
     accounts.emplace(id, Account{id, owner, amount, created});
 
     string msg = "Conta criada para " + owner + " (id " + to_string(id) + ") com saldo R$" + to_string(amount);
-    historico.push_back(msg);
-    logOperation(msg);
+    logger.info(msg);
     cout << "\033[1;32mConta criada! ID: " << id << "\033[0m\n";
 } catch (const std::exception &e) {
-    logError(e, "createAccount/DB");
+    logger.error("createAccount/DB", e);
     throw; // cai nos seus catchs do menu
 }
 }
@@ -118,11 +107,10 @@ void BankSystem::deposit() {
 
         acc.deposit(amount);
         string msg = "Depósito de R$" + to_string(amount) + " na conta " + to_string(id);
-        historico.push_back(msg);
-        logOperation(msg);
+        logger.info(msg);
         cout << C_GRN "Depósito realizado!" << C_RST "\n";
     } catch (const exception &e){
-        logError(e, "deposit/DB");
+        logger.error("deposit/DB", e);
         throw runtime_error("Falha ao processar depósito: " + string(e.what()));
     }
 
@@ -166,11 +154,10 @@ void BankSystem::withdraw() {
         tr.commit();
 
         string msg = "Saque de R$" + to_string(amount) + " da conta " + to_string(id);
-        historico.push_back(msg);
-        logOperation(msg);
+        logger.info(msg);
         cout << "\033[1;32mSaque realizado!\033[0m\n";
         } catch (const std::exception &e) {
-            logError(e, "withdraw/DB");
+            logger.error("withdraw/DB", e);
             throw;
     }
 }
@@ -221,11 +208,10 @@ void BankSystem::transfer() {
 
         string msg = "Transferência de R$" + to_string(value) +
                     " da conta " + to_string(from) + " para " + to_string(to);
-        historico.push_back(msg);
-        logOperation(msg);
+        logger.info(msg);
         cout << "\033[1;32mTransferência realizada!\033[0m\n";
     } catch (const std::exception &e) {
-        logError(e, "transfer/DB");
+        logger.error("transfer/DB", e);
         // reverte cache em caso de erro
         src.deposit(value);
         dst.withdraw(value);
@@ -244,14 +230,40 @@ void BankSystem::showBalance() {
     }
 }
 
-void BankSystem::showHistory() {
-    if (historico.empty()) {
-        cout << C_YEL << "Nenhuma operação registrada ainda." << C_RST << "\n";
+vector<Operation> BankSystem::loadHistory(int idAccount){
+    vector<Operation> out;
+    try{
+        soci::rowset<soci::row> rs=(db().prepare <<
+            "SELECT kind, amount, to_char(created_at, 'YYYY-MM-DD HH24:MI:SS)"
+            "FROM operations WHERE account_id = :id ORDER BY id ASC",
+        soci::use(idAccount));
+        for (auto &r : rs){
+            Operation op;
+            op.kind = r.get<string>(0);
+            op.amount = r.get<int>(1);
+            op.createdAt = r.get<string>(2);
+            out.push_back(op);
+        }
+    }catch (const exception &e){
+        logger.error("loadHistory/DB", e);
+        throw;
+    }
+    return out;
+}
+
+void BankSystem::showHistory(){
+    int id = ui::read_int(std::string(C_CYN) + "Digite o ID da conta: " + C_RST);
+    auto &acc = findAccount(id);
+
+    auto history = loadHistory(id);
+    if(history.empty()){
+        cout << C_YEL << "Nenhuma operação para esta conta." << C_RST << "\n";
         return;
     }
-    cout << "\n" << C_CYN << "====== HISTÓRICO DE OPERAÇÕES ======" << C_RST << "\n";
-    for (size_t i = 0; i < historico.size(); ++i) {
-        cout << C_WHT << "[" << i + 1 << "]" << C_RST << " " << historico[i] << endl;
+    cout << "\n" << C_CYN << "====== HISTÓRICO DA CONTA " << id << " ======" << C_RST << "\n";
+    for (const auto &h : history){
+        cout << " [" << h.createdAt << "] "
+             << h.kind << " R$" << h.amount << "\n";
     }
 }
 
@@ -272,7 +284,7 @@ void BankSystem::run(){
         cout << "  " << C_GRN << "[3]" << C_RST << " Fazer um saque\n";
         cout << "  " << C_GRN << "[4]" << C_RST << " Realizar uma transferência\n";
         cout << "  " << C_GRN << "[5]" << C_RST << " Ver o saldo\n";
-        cout << "  " << C_GRN << "[6]" << C_RST << " Histórico de Operações\n";
+        cout << "  " << C_GRN << "[6]" << C_RST << " Histórico da conta\n";
         cout << "  " << C_RED << "[7]" << C_RST << " Sair\n\n";
         cout << "→ ";
         cin >> escolha;
@@ -297,19 +309,19 @@ void BankSystem::run(){
         }
     }
     catch (const ContaInexistente &e){
-        logError(e, "Menu/Operacao");
+        logger.error("Menu/Operacao", e);
         cout << C_RED "Erro: " << e.what() << C_RST "\n";
     }
     catch (const ValorInvalido &e){
-        logError(e, "Menu/Operacao");
+        logger.error("Menu/Operacao", e);
         cout << C_RED "Valor inválido: " << e.what() << C_RST "\n";
     }
     catch (const SaldoInsuficiente &e){
-        logError(e, "Menu/Operacao");
+        logger.error("Menu/Operacao", e);
         cout << C_RED "Operação negada: " << e.what() << C_RST "\n";
     }
     catch (const exception &e){
-        logError(e, "Menu/Operacao");
+        logger.error("Menu/Operacao", e);
         cout << C_RED "Falha inesperada: " << e.what() << C_RST "\n";
     }
         ui::pauseScreen();

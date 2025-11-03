@@ -22,19 +22,3 @@ soci::session &db(){
         }
         return sql;
     }
-
-
-// =========================================
-/* FUNÇÕES AUXILIARES DE INTERFACE */
-// =========================================
-
-void logError(const exception &e, const string &where){
-    ofstream f("errors.log", ios::app);
-    if (!f.is_open()) return;
-    time_t now = time(0);
-    string t = ctime(&now);
-    t.pop_back();
-
-    f << "[" << t << "] " << where << " | " << typeid(e).name()
-      << " | " << e.what() << "\n";
-}
