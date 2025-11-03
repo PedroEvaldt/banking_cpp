@@ -6,31 +6,37 @@ services:
       POSTGRES_DB: banktdah
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 971325
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
     networks:
-      - banknet
+      - banking_cpp_banknet
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
-      retries: 5
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
   app:
-    environment:
-      PGHOST: postgres-bank
-      PGUSER: postgres
-      PGPASSWORD: 971325
-      PGDATABASE: banktdah
     build: .
     container_name: bank-system
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      PGHOST: postgres-bank
+      PGUSER: postgres
+      PGPASSWORD: 971325
+      PGDATABASE: banktdah
     networks:
-      - banknet
-    command: ["./bin/bank_app"]
+      - banking_cpp_banknet
+    entrypoint: ["./bin/bank_app"]
 
 networks:
-  banknet:
+  banking_cpp_banknet:
+    driver: bridge
 volumes:
   postgres_data:

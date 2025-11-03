@@ -234,7 +234,7 @@ vector<Operation> BankSystem::loadHistory(int idAccount){
     vector<Operation> out;
     try{
         soci::rowset<soci::row> rs=(db().prepare <<
-            "SELECT kind, amount, to_char(created_at, 'YYYY-MM-DD HH24:MI:SS)"
+            "SELECT kind, amount, to_char(created_at, 'YYYY-MM-DD HH24:MI:SS')"
             "FROM operations WHERE account_id = :id ORDER BY id ASC",
         soci::use(idAccount));
         for (auto &r : rs){
@@ -284,7 +284,7 @@ void BankSystem::run(){
         cout << "  " << C_GRN << "[3]" << C_RST << " Fazer um saque\n";
         cout << "  " << C_GRN << "[4]" << C_RST << " Realizar uma transferência\n";
         cout << "  " << C_GRN << "[5]" << C_RST << " Ver o saldo\n";
-        cout << "  " << C_GRN << "[6]" << C_RST << " Histórico da conta\n";
+        cout << "  " << C_GRN << "[6]" << C_RST << " Histórico da\n";
         cout << "  " << C_RED << "[7]" << C_RST << " Sair\n\n";
         cout << "→ ";
         cin >> escolha;
